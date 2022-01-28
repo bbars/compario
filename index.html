@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+<script type="text/javascript" src="./src/views/modal.js"></script>
+<link rel="stylesheet" type="text/css" href="./all.css">
+<title>Compario</title>
+</head>
+<body>
+<header>
+	<div class="toolbar">
+		<div class="toolbar-start">
+			<div class="iblock valign-middle">
+				<a href="?" class="logo">Compario</a>
+			</div>
+			<div class="iblock valign-middle">
+				<span id="elCompName"></span>
+				<button id="elBtnEditComp" class="inline" title="Edit Compario project">
+					<span class="material-icons material-icons-round valign-middle">edit</span>
+				</button>
+			</div>
+		</div>
+		<div class="toolbar-end">
+			<button id="elBtnSaveComp">
+				<span class="material-icons material-icons-round">save</span>
+				Save
+			</button>
+		</div>
+	</div>
+</header>
+<main>
+	<table id="elTable">
+		<tbody id="elTbody">
+			<tr>
+				<td class="nowrap">
+					<button id="elBtnAddCrit" class="" title="Add criteria">
+						<span class="material-icons material-icons-round">add</span>
+						Criteria
+					</button>
+					<button id="elBtnAddItem" class="" title="Add item">
+						<span class="material-icons material-icons-round">add</span>
+						Item
+					</button>
+				</td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr id="elTrScores">
+				<td>Total score:</td>
+			</tr>
+		</tfoot>
+	</table>
+</main>
+<form id="elModalEditComp" class="modal">
+	<h2 class="mt-0">Edit Project</h2>
+	<p>
+		<label>
+			Name:<br />
+			<input type="text" name="name" required>
+		</label>
+	</p>
+	<p>
+		<label>
+			Description:<br />
+			<textarea name="description"></textarea>
+		</label>
+	</p>
+	<p class="mb-0">
+		<button type="submit">Save</button>
+	</p>
+</form>
+<form id="elModalEditItem" class="modal">
+	<h2 class="mt-0">Add Item</h2>
+	<p>
+		<label>
+			Name:<br />
+			<input id="elEditItemName" type="text" name="name" required>
+		</label>
+	</p>
+	<p>
+		<label>
+			Image (URL):<br />
+			<input id="elEditItemImage" type="url" name="url">
+		</label>
+	</p>
+	<p>
+		<label>
+			Description:<br />
+			<textarea id="elEditItemDescription" name="description"></textarea>
+		</label>
+	</p>
+	<p class="mb-0">
+		<button type="submit">Save</button>
+	</p>
+</form>
+<form id="elModalEditCrit" class="modal">
+	<h2 class="mt-0">Edit Criteria</h2>
+	<p>
+		<label>
+			Type:<br />
+			<select id="elEditCritType" name="type" required></select>
+		</label>
+	</p>
+	<p>
+		<label>
+			Name:<br />
+			<input id="elEditCritName" type="text" name="name" required>
+		</label>
+	</p>
+	<fieldset>
+		<legend>Options</legend>
+		<div id="elCritOptionsInputView"></div>
+	</fieldset>
+	<p class="mb-0">
+		<button type="submit">Save</button>
+	</p>
+</form>
+<script type="module">
+
+import JSONSchema from './src/utils/JSONSchema.js';
+import { HttpApiClientJSONSchema } from './src/utils/ApiClientJSONSchema.js';
+
+import models from './src/models.js';
+window.models = models;
+
+import HashParams from './src/utils/HashParams.js';
+window.HashParams = HashParams;
+
+JSONSchema.resolveConstructor = (name) => {
+	for (const lib of JSONSchema.resolveConstructor.supportedConstructorLibs) {
+		if (lib[name]) {
+			return lib[name];
+		}
+	}
+	return null;
+};
+JSONSchema.resolveConstructor.supportedConstructorLibs = [
+	window,
+	models,
+];
+
+const api = window.api = new HttpApiClientJSONSchema('/api/');
+await api.init();
+console.warn(await api.test('api', 'ok'));
+
+window.addEventListener('popstate', (event) => {
+	// console.log('popstate', event);
+	const state = event.state;
+	loadCompario(state.comparioId);
+});
+
+
+function createElement(parent, tagName, content, attributes) {
+	const el = document.createElement(tagName);
+	if (content) {
+		if (content instanceof Node) {
+			content = [content];
+		}
+		if (content instanceof Array) {
+			for (const child of content) {
+				el.appendChild(child instanceof Node ? child : document.createTextNode(child + ''));
+			}
+		}
+		else {
+			el.innerHTML = content;
+		}
+	}
+	if (attributes) {
+		for (const k in attributes) {
+			el.setAttribute(k, attributes[k]);
+		}
+	}
+	if (parent) {
+		parent.appendChild(el);
+	}
+	return el;
+}
+
+let comp;
+
+const elCompName = document.querySelector('#elCompName');
+const elBtnEditComp = document.querySelector('#elBtnEditComp');
+const elBtnSaveComp = document.querySelector('#elBtnSaveComp');
+
+const elTbody = document.querySelector('#elTbody');
+
+const elBtnAddCrit = document.querySelector('#elBtnAddCrit');
+const elBtnAddItem = document.querySelector('#elBtnAddItem');
+
+const elModalEditComp = document.querySelector('#elModalEditComp');
+
+const elModalEditCrit = document.querySelector('#elModalEditCrit');
+const elEditCritType = document.querySelector('#elEditCritType');
+const elEditCritName = document.querySelector('#elEditCritName');
+
+const elModalEditItem = document.querySelector('#elModalEditItem');
+const elEditItemName = document.querySelector('#elEditItemName');
+const elEditItemImage = document.querySelector('#elEditItemImage');
+const elEditItemDescription = document.querySelector('#elEditItemDescription');
+const elCritOptionsInputView = document.querySelector('#elCritOptionsInputView');
+
+elBtnEditComp.addEventListener('click', async (event) => {
+	await editCompMeta();
+});
+
+elBtnSaveComp.addEventListener('click', async (event) => {
+	await saveCompario();
+});
+
+populateCritTypeSelect: {
+	const prefix = models.ComparioCrit.name;
+	for (const typeName in models.ComparioCrit.implementations) {
+		let label = typeName;
+		if (label.indexOf(prefix) === 0) {
+			label = label.substr(prefix.length);
+		}
+		createElement(elEditCritType, 'option', label, {
+			value: typeName,
+		});
+	}
+}
+
+elEditCritType.addEventListener('change', (event) => {
+	while (elCritOptionsInputView.children.length) {
+		elCritOptionsInputView.removeChild(elCritOptionsInputView.children[0]);
+	}
+	const critConstructor = models.ComparioCrit.implementations[event.target.value];
+	const optionsInputViewWrapper = critConstructor.createOptionsInputViewWrapper();
+	const optionsInputViewWrapperViews = optionsInputViewWrapper.getViews();
+	for (const name in optionsInputViewWrapperViews) {
+		const p = createElement(elCritOptionsInputView, 'p');
+		const label = createElement(p, 'label');
+		label.appendChild(document.createTextNode(name + ':'));
+		label.appendChild(createElement(null, 'br'));
+		label.appendChild(optionsInputViewWrapperViews[name]);
+	}
+	optionsInputViewWrapper.value = (new critConstructor()).options;
+	elModalEditCrit._optionsInputViewWrapper = optionsInputViewWrapper;
+});
+
+elBtnAddCrit.addEventListener('click', async () => {
+	editCrit(null);
+});
+
+elBtnAddItem.addEventListener('click', async () => {
+	editItem(null);
+});
+
+function drawCritCell(crit) {
+	const critIndex = crit.getCritIndex();
+	if (!crit._td) {
+		while (!elTbody.children[critIndex + 1]) {
+			createElement(elTbody, 'tr', null, {
+				'class': 'crit-row',
+			});
+		}
+		const tr = elTbody.children[critIndex + 1];
+		addCritTh: {
+			Object.defineProperties(crit, {
+				_td: {
+					value: createElement(tr, 'th', null, {
+						'class': 'crit-cell',
+					}),
+				},
+			});
+			crit._td._span = createElement(crit._td, 'span', null, {
+				'class': 'label-crit',
+			});
+			crit._td.appendChild(document.createTextNode(' '));
+			const icon = createElement(null, 'span', 'edit', {
+				'class': 'material-icons material-icons-round valign-middle',
+			});
+			crit._td._btnEdit = createElement(crit._td, 'button', icon, {
+				'class': 'btn-edit inline',
+			});
+			crit._td._btnEdit.addEventListener('click', (event) => editCrit(crit));
+		}
+	}
+	const td = crit._td;
+	const tr = td.parentElement;
+	td._span.textContent = crit.name;
+	const elIndex = Array.from(elTbody.children).indexOf(tr) - 1;
+	elTbody.insertBefore(tr, elTbody.children[critIndex + 1 + (elIndex < critIndex ? 1 : 0)]);
+}
+
+function drawItemCell(item) {
+	const itemIndex = item.getItemIndex();
+	if (!item._td) {
+		const tr = elTbody.children[0];
+		Object.defineProperties(item, {
+			_td: {
+				value: createElement(null, 'th', null, {
+					'class': 'item-cell',
+				}),
+			},
+		});
+		item._td._span = createElement(item._td, 'span', null, {
+			'class': 'label-item',
+		});
+		item._td.appendChild(document.createTextNode(' '));
+		const icon = createElement(null, 'span', 'edit', {
+			'class': 'material-icons material-icons-round valign-middle',
+		});
+		item._td._btnEdit = createElement(item._td, 'button', icon, {
+			'class': 'btn-edit inline',
+		});
+		item._td._btnEdit.addEventListener('click', (event) => editItem(item));
+	}
+	const tr = elTbody.children[0];
+	const td = item._td;
+	td._span.textContent = item.name;
+	const elIndex = Array.from(tr.children).indexOf(td) - 1;
+	tr.insertBefore(td, tr.children[itemIndex + 1 + (elIndex < itemIndex ? 1 : 0)]);
+	
+	for (const crit of comp.crits) {
+		const valueWrapper = comp.getValueWrapper(crit, itemIndex, true);
+		drawValueCell(valueWrapper);
+	}
+}
+
+function drawValueCell(valueWrapper) {
+	const critItemIndexes = valueWrapper.getCritItemIndexes();
+	if (!valueWrapper._td) {
+		if (!elTbody.children[critItemIndexes.critIndex + 1]) {
+			drawCritCell(valueWrapper.getCrit());
+		}
+		const tr = elTbody.children[critItemIndexes.critIndex + 1];
+		while (tr.children.length < critItemIndexes.itemIndex + 1 + 1) {
+			createElement(tr, 'td', null, {
+				'class': 'value-cell',
+				'data-crit-type': valueWrapper.getCrit().type,
+			});
+		}
+		const td = tr.children[critItemIndexes.itemIndex + 1];
+		Object.defineProperties(valueWrapper, {
+			_td: {
+				value: td,
+			},
+		});
+	}
+	const td = valueWrapper._td;
+	const tr = td.parentElement;
+	const elIndex = Array.from(tr.children).indexOf(td) - 1;
+	tr.insertBefore(td, tr.children[critItemIndexes.itemIndex + 1 + (elIndex < valueWrapper.itemIndex ? 1 : 0)]);
+	
+	td._valueWrapper = valueWrapper;
+	if (!td._inputViewWrapper) {
+		td._inputViewWrapper = valueWrapper.createInputViewWrapper();
+		td._inputViewWrapper.events.addEventListener('change', (event) => {
+			valueWrapper.value = td._inputViewWrapper.value;
+			redrawScores();
+		});
+		td.addEventListener('input', (event) => {
+			valueWrapper.value = td._inputViewWrapper.value;
+			redrawScores();
+		});
+	}
+	const inputViewWrapper = td._inputViewWrapper;
+	
+	while (td.children[0]) {
+		td.removeChild(td.children[0]);
+	}
+	
+	const views = inputViewWrapper.getViews();
+	for (const k in views) {
+		td.appendChild(views[k]);
+	}
+}
+
+async function editCompMeta() {
+	elModalEditComp.reset();
+	if (comp.meta) {
+		for (const name in comp.meta) {
+			const input = elModalEditComp.querySelector('[name="' + name + '"]');
+			if (!input) {
+				continue;
+			}
+			input.value = comp.meta[name];
+		}
+	}
+	const compMetaData = await Modal.prompt(elModalEditComp);
+	if (!compMetaData) {
+		return;
+	}
+	if (!comp.meta) {
+		comp.meta = {};
+	}
+	for (const name of compMetaData.keys()) {
+		comp.meta[name] = compMetaData.get(name);
+	}
+	redrawCompMeta();
+	return comp.meta;
+}
+
+async function editCrit(crit) {
+	elModalEditCrit.reset();
+	if (crit) {
+		elEditCritType.disabled = true;
+		elEditCritType.value = crit.type;
+	}
+	else {
+		elEditCritType.disabled = false;
+		// elEditCritType.value = Object.values(models.ComparioCrit.implementations)[0];
+		elEditCritType.selectedIndex = 0;
+	}
+	elEditCritType.dispatchEvent(new CustomEvent('change'));
+	if (crit) {
+		elEditCritType.value = crit.type;
+		elModalEditCrit._optionsInputViewWrapper.value = crit.options;
+		elEditCritName.value = crit.name;
+	}
+	const critData = await Modal.prompt(elModalEditCrit);
+	if (!critData) {
+		return;
+	}
+	const options = elModalEditCrit._optionsInputViewWrapper.value;
+	if (!crit) {
+		const critConstructor = models.ComparioCrit.implementations[critData.get('type')];
+		crit = new critConstructor(null, critData.get('name'), options);
+	}
+	crit.name = critData.get('name');
+	Object.assign(crit.options, options);
+	comp.addCrit(crit);
+}
+
+async function editItem(item) {
+	elModalEditItem.reset();
+	if (item) {
+		elEditItemName.value = item.name;
+		elEditItemImage.value = item.image;
+		elEditItemDescription.value = item.description;
+	}
+	const itemData = await Modal.prompt(elModalEditItem);
+	if (!itemData) {
+		return;
+	}
+	if (!item) {
+		item = new models.ComparioItem(null);
+	}
+	item.name = itemData.get('name');
+	item.description = itemData.get('description');
+	item.image = itemData.get('image');
+	comp.addItem(item);
+}
+
+function redrawScores() {
+	const scores = comp.calcScores();
+	const minScore = Math.min(...scores);
+	const maxScore = Math.max(...scores);
+	while (elTrScores.children.length < scores.length + 1) {
+		createElement(elTrScores, 'td', null, {
+			'class': 'score-cell',
+		});
+	}
+	while (elTrScores.children.length > scores.length + 1) {
+		elTrScores.removeChild(elTrScores.lastElementChild);
+	}
+	for (let i = 0; i < scores.length; i++) {
+		const td = elTrScores.children[i + 1];
+		const score = scores[i];
+		td.textContent = (Math.round(score * 100) / 100).toLocaleString();
+		td.classList.toggle('score-min', score === minScore && score !== maxScore);
+		td.classList.toggle('score-max', score === maxScore && score !== minScore);
+	}
+}
+
+function redrawCompMeta() {
+	elCompName.textContent = comp.meta && comp.meta.name || 'Unnamed';
+}
+
+function resetTable() {
+	let parent;
+	parent = elTbody;
+	while (parent.children.length > 1) {
+		parent.removeChild(parent.children[1]);
+	}
+	parent = elTbody.children[0];
+	while (parent.children.length > 1) {
+		parent.removeChild(parent.children[1]);
+	}
+	parent = elTrScores;
+	while (parent.children.length > 1) {
+		parent.removeChild(parent.children[1]);
+	}
+}
+
+async function loadCompario(comparioId) {
+	comp = comparioId == null
+		? new models.Compario(null, 0)
+		: await api.getCompario(comparioId)
+	;
+	window.comp = comp;
+	if (!comp) {
+		showError(`Compario project not found (comparioId=${comparioId})`);
+		comp = new models.Compario(null, 0);
+	}
+	
+	resetTable();
+	redrawCompMeta();
+	
+	comp.events.addEventListener('crit.modify', (event) => {
+		// console.log(event);
+		drawCritCell(event.detail.crit);
+		redrawScores();
+	});
+	comp.events.addEventListener('item.modify', (event) => {
+		// console.log(event);
+		drawItemCell(event.detail.item);
+		redrawScores();
+	});
+	comp.events.addEventListener('value.modify', (event) => {
+		// console.log(event);
+		drawValueCell(event.detail.valueWrapper);
+		redrawScores();
+	});
+	
+	await comp.init();
+	// redrawScores();
+	
+	return comp;
+}
+
+async function saveCompario() {
+	elBtnSaveComp.disabled = true;
+	try {
+		const savedComp = await api.saveCompario(comp);
+		const url = new URL('?' + new URLSearchParams({
+			id: savedComp.comparioId,
+		}), document.location);
+		const state = {
+			comparioId: savedComp.comparioId,
+		};
+		history.pushState(state, 'Compario: ' + comp.name, url.toString());
+	}
+	finally {
+		elBtnSaveComp.disabled = false;
+	}
+}
+
+function showError(err) {
+	if (!(err instanceof Error)) {
+		err = new Error(err);
+	}
+	console.error(err);
+	alert(err.message);
+}
+
+const searchParams = new URLSearchParams(document.location.search);
+await loadCompario(searchParams.get('id'));
+
+</script>
+</body>
+</html>

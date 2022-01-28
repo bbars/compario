@@ -1,0 +1,281 @@
+body {
+	margin: 0;
+}
+
+header,
+main,
+footer {
+	padding: 1rem;
+}
+
+header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: #cdd;
+	box-shadow: rgba(0,0,0, 0.2) 0 2px 2px;
+	border-bottom: #eee 1px solid;
+}
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+input,
+button,
+select,
+textarea {
+	font: inherit;
+	box-sizing: border-box;
+}
+textarea {
+	width: 100%;
+	resize: vertical;
+}
+fieldset {
+	border: none;
+	background: #ffc;
+	margin: 0 -0.5rem;
+	padding: 0rem 0.5rem;
+	border-radius: 0.4rem;
+}
+fieldset > legend {
+	background: inherit;
+	border-radius: 0.4rem;
+	padding: 0.2rem 0.5rem;
+	margin-left: -0.5rem;
+}
+
+label > br + input,
+label > br + button,
+label > br + select,
+label > br + textarea {
+	margin-top: 0.3em;
+}
+
+button {
+	cursor: pointer;
+}
+button.inline {
+	padding: 0;
+	border: none;
+	background: none;
+}
+button.flat {
+	padding: 0.5em;
+	border: none;
+}
+
+button .material-icons {
+	font-size: inherit;
+	vertical-align: -0.15em;
+}
+
+.modal {
+	display: none;
+	position: relative;
+}
+.modal-stack {
+	display: none;
+	position: fixed;
+	background: rgba(0,0,0, 0.5);
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 10000;
+	padding: 1rem;
+	box-sizing: border-box;
+	text-align: center;
+}
+.modal-stack:after {
+	content: 'Close (Esc)';
+	font-family: 'Monaco','Menlo','Ubuntu Mono','Consolas','source-code-pro',monospace;
+	display: block;
+	padding-top: 1rem;
+	color: #fff;
+}
+body.modal-stack-show .modal-stack {
+	display: block;
+}
+body.modal-stack-show {
+	overflow: hidden !important;
+}
+body.modal-stack-show .modal-stack {
+	overflow: auto !important;
+}
+.modal-stack > * {
+	display: none;
+	background: #fff;
+	margin: 0 auto;
+	padding: 1rem;
+	border-radius: 1px;
+	text-align: left;
+	box-shadow: rgba(0,0,0, 0.25) 0 1px 1px 1px;
+}
+.modal-stack > :last-child {
+	display: inline-block;
+}
+.modal-stack > .modal-full:last-child {
+	display: block;
+}
+
+#elTable {
+	border-collapse: separate;
+	border-spacing: 0;
+	filter: drop-shadow(#0002 1px 1px 1px);
+}
+#elTable > * tr > * {
+	padding: 0.4rem 0.7rem;
+}
+#elTable > * > tr > th.crit-cell,
+#elTable > * > tr > th.item-cell {
+	font-weight: inherit;
+}
+#elTable > * > tr > th.crit-cell {
+	text-align: left;
+	text-align: start;
+}
+#elTable > * > tr > th.crit-cell > .label-crit,
+#elTable > * > tr > th.item-cell > .label-item {
+	display: inline-block;
+	max-width: 12em;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-weight: bold;
+}
+#elTable > tbody > tr:nth-child(2) > th.crit-cell {
+	border-top-left-radius: 0.4em;
+}
+#elTable > tbody > tr:nth-last-child(1) > th.crit-cell {
+	border-bottom-left-radius: 0.4em;
+}
+
+#elTable > tbody > tr:nth-child(1) > th.item-cell:nth-child(2) {
+	border-top-left-radius: 0.4em;
+}
+#elTable > tbody > tr:nth-child(1) > th.item-cell:nth-last-child(1) {
+	border-top-right-radius: 0.4em;
+}
+
+#elTable > * > tr:nth-last-child(1) > td.score-cell:nth-child(2) {
+	border-bottom-left-radius: 0.4em;
+}
+#elTable > * > tr:nth-last-child(1) > td.score-cell:nth-last-child(1) {
+	border-bottom-right-radius: 0.4em;
+}
+
+#elTable > tbody > tr > td.value-cell {
+	padding: 0;
+	text-align: center;
+}
+
+#elTable > * > tr > td.score-cell {
+	font-weight: bold;
+	transition: color 0.6s ease;
+	text-align: center;
+}
+
+#elTable > tbody > tr > td.value-cell input {
+	border: none;
+	padding: 0.7rem;
+	text-align: inherit;
+	text-overflow: ellipsis;
+}
+#elTable > tbody > tr > td.value-cell input:invalid {
+	/* outline: #f009 2px dotted; */
+	background-color: rgba(255,0,0, 0.15);
+}
+
+#elTable > tbody > tr > td.value-cell input[type="number"]::-webkit-outer-spin-button,
+#elTable > tbody > tr > td.value-cell input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+#elTable > tbody > tr > td.value-cell input[type="number"] {
+	-moz-appearance: textfield;
+}
+
+#elTable > * > tr > td.score-cell.score-min {
+	color: #900;
+}
+#elTable > * > tr > td.score-cell.score-max {
+	color: #090;
+}
+
+#elTable > * > tr > th.crit-cell,
+#elTable > * > tr > th.item-cell,
+#elTable > * > tr > td.score-cell {
+	background: #eee;
+}
+#elTable > * > tr > td.value-cell {
+	background: #fff;
+}
+#elTable > * > tr > th.crit-cell,
+#elTable > * > tr > th.item-cell,
+#elTable > * > tr > td.value-cell,
+#elTable > * > tr > td.score-cell {
+	border: #eee 1px solid;
+}
+#elTable > * > tr > th.crit-cell:last-child,
+#elTable > * > tr > th.item-cell:last-child,
+#elTable > * > tr > td.value-cell:last-child,
+#elTable > * > tr > td.score-cell:last-child {
+	border-right-width: 2px;
+}
+
+#elTable > * > tr > th.crit-cell .btn-edit,
+#elTable > * > tr > th.item-cell .btn-edit {
+	opacity: 0.3;
+	margin-left: 0.5em;
+	vertical-align: 0.25em;
+}
+#elTable > * > tr > th.crit-cell:hover .btn-edit,
+#elTable > * > tr > th.item-cell:hover .btn-edit {
+	opacity: 1;
+}
+
+#elTable > tbody > tr > td.value-cell {
+	max-width: 10em;
+	min-width: 5em;
+}
+
+#elTable > tbody > tr > td.value-cell[data-crit-type="ComparioCritBool"] {
+	text-align: center;
+	padding: 0.7rem;
+}
+#elTable > tbody > tr > td.value-cell[data-crit-type="ComparioCritBool"] input[type="checkbox"] {
+	width: 1.25em;
+	height: 1.25em;
+	margin: 0;
+	vertical-align: -0.3em;
+}
+
+#elTable > tbody > tr > td.value-cell[data-crit-type="ComparioCritNumber"] input[type="number"] {
+	width: 100%;
+}
+
+#elTable > tbody > tr > td.value-cell[data-crit-type="ComparioCritVector"] input[type="number"],
+#elTable > tbody > tr > td.value-cell[data-crit-type="ComparioCritSquare"] input[type="number"] {
+	width: 50%;
+}
+
+#elTable #elTrScores > :first-child:last-child {
+	display: none;
+}
+
+
+.nowrap {
+	white-space: nowrap;
+}
+.iblock {
+	display: inline-block;
+}
+.valign-middle {
+	vertical-align: middle;
+}
+.mt-0 { margin-top:    0; }
+.mb-0 { margin-bottom: 0; }
