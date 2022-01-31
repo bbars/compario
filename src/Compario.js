@@ -379,7 +379,7 @@ export default class Compario extends SqlModel {
 		return cachedExecution(this, PROP_SCORES, forceRecalc, this.calcScores, this);
 	}
 	
-	_calcScores() {
+	calcScores() {
 		const res = [];
 		const normValues = [];
 		
@@ -403,38 +403,19 @@ export default class Compario extends SqlModel {
 				if (!normValues[critIndex]) {
 					continue;
 				}
-				if (typeof normValues[critIndex].absMax === 'undefined') {
-					normValues[critIndex].absMax = Math.abs(Math.max(...normValues[critIndex]));
+				if (!normValues[critIndex].normalized) {
+					const min = Math.min(...normValues[critIndex]);
+					const max = Math.max(...normValues[critIndex]);
+					normValues[critIndex] = normValues[critIndex].map((val) => {
+						return min === max ? 0 : (val - min) / (max - min);
+					});
+					normValues[critIndex].normalized = true;
 				}
 				const crit = this.crits[critIndex];
 				if (!crit) {
 					continue;
 				}
-				res[itemIndex] += crit.options.multiplier * (!normValues[critIndex].absMax
-					? 0
-					: normValues[critIndex][itemIndex] / normValues[critIndex].absMax
-				);
-			}
-		}
-		
-		return res;
-	}
-	
-	calcScores() {
-		const res = [];
-		
-		for (let itemIndex = this.items.length - 1; itemIndex >= 0; itemIndex--) {
-			if (!this.items[itemIndex] || !this.values[itemIndex]) {
-				continue;
-			}
-			res[itemIndex] = 0;
-			for (let critIndex = this.crits.length - 1; critIndex >= 0; critIndex--) {
-				const crit = this.crits[critIndex];
-				const valueWrapper = this.values[itemIndex] && this.values[itemIndex][critIndex];
-				if (!crit || !valueWrapper) {
-					continue;
-				}
-				res[itemIndex] += crit.options.multiplier * crit.normValue(valueWrapper.value || 0);
+				res[itemIndex] += crit.options.multiplier * normValues[critIndex][itemIndex];
 			}
 		}
 		
