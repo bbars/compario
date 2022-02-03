@@ -39,9 +39,12 @@ export default class JSONSchema {
 		else if (tree === 'boolean') {
 			return !!(isNaN(data) ? data : +data);
 		}
+		else if (tree === 'bigint') {
+			return BigInt(data);
+		}
 		else if (tree instanceof Array || tree === Array) {
 			const res = tree === Array || tree.constructor === Array
-				? new Array(data && data.length)
+				? new Array(data ? data.length : 0)
 				: Object.create(tree.prototype)
 			;
 			if (data === undefined) {
@@ -66,6 +69,9 @@ export default class JSONSchema {
 	static _instantiate(constructor, data) {
 		if (data == null) {
 			return data;
+		}
+		if (constructor === BigInt) {
+			return Object(BigInt(data));
 		}
 		let res = constructor.fromJSON ? constructor.fromJSON(data) : new constructor(data);
 		if (!res.constructor || res.constructor.name === 'Object') {
@@ -92,11 +98,14 @@ export default class JSONSchema {
 		return arr;
 	}
 	
-	static _fillObject(obj, tree, data) {
+	static _fillObject(obj, tree, data, names) {
 		if (typeof data !== 'object') {
 			throw new Error("Data should be an object");
 		}
-		for (const name in data) {
+		if (!names) {
+			names = Object.keys(data);
+		}
+		for (const name of names) {
 			obj[name] = this.make(tree[name], data[name]);
 		}
 		return obj;
@@ -200,7 +209,11 @@ class JSONSchemaMix {
 		if (res == null) {
 			return res;
 		}
-		JSONSchema._fillObject(res, this.propsObject, data);
+		const names = res.constructor === Object
+			? undefined
+			: Object.keys(this.propsObject)
+		;
+		JSONSchema._fillObject(res, this.propsObject, data, names);
 		return res;
 	}
 }
