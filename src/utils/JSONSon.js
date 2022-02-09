@@ -1,10 +1,10 @@
 const _globalThis = typeof globalThis === 'object' ? globalThis : this;
 
-export default class JSONSchema {
-	_tree;
+export default class JSONSon {
+	_type;
 	
-	constructor(tree) {
-		this._tree = tree;
+	constructor(type) {
+		this._type = type;
 	}
 	
 	parse(json) {
@@ -12,57 +12,57 @@ export default class JSONSchema {
 	}
 	
 	make(data) {
-		return this.constructor.make(this._tree, data);
+		return this.constructor.make(this._type, data);
 	}
 	
-	static parse(tree, json) {
-		return new this(tree).parse(json);
+	static parse(type, json) {
+		return new this(type).parse(json);
 	}
 	
-	static make(tree, data) {
-		if (typeof tree === 'function' && typeof tree.getJSONSchema === 'function') {
-			tree = tree.getJSONSchema();
+	static make(type, data) {
+		if (typeof type === 'function' && typeof type.getJSONSonSchema === 'function') {
+			type = type.getJSONSonSchema();
 		}
-		if (tree instanceof JSONSchema) {
-			tree = tree._tree;
+		if (type instanceof JSONSon) {
+			type = type._type;
 		}
-		const treeType = typeof tree;
-		if (tree === undefined || tree === 'any') {
+		const typeType = typeof type;
+		if (type === undefined || type === 'any') {
 			return data;
 		}
-		else if (tree === 'string') {
+		else if (type === 'string') {
 			return typeof data === 'undefined' ? '' : '' + data;
 		}
-		else if (tree === 'number') {
+		else if (type === 'number') {
 			return +data;
 		}
-		else if (tree === 'boolean') {
+		else if (type === 'boolean') {
 			return !!(isNaN(data) ? data : +data);
 		}
-		else if (tree === 'bigint') {
+		else if (type === 'bigint') {
 			return BigInt(data);
 		}
-		else if (tree instanceof Array || tree === Array) {
-			const res = tree === Array || tree.constructor === Array
+		else if (type instanceof Array || type === Array) {
+			const res = type === Array || type.constructor === Array
 				? new Array(data ? data.length : 0)
-				: Object.create(tree.prototype)
+				: Object.create(type.prototype)
 			;
 			if (data === undefined) {
 				return res;
 			}
-			return this._fillArray(res, tree, data);
+			return this._fillArray(res, type, data);
 		}
-		else if (treeType === 'function') {
-			return this._instantiate(tree, data);
+		else if (typeType === 'function') {
+			return this._instantiate(type, data);
 		}
-		else if (tree instanceof JSONSchemaMix) {
-			return tree.make(data);
+		else if (type instanceof JSONSonMix) {
+			return type.make(data);
 		}
-		else if (treeType === 'object') {
-			return this._fillObject({}, tree, data);
+		else if (typeType === 'object') {
+			return this._fillObject({}, type, data);
 		}
 		else {
-			throw new Error(`Unsupported type: '${tree}'`);
+			throw new Error(`Unsupported type: '${type}'`);
 		}
 	}
 	
@@ -84,21 +84,21 @@ export default class JSONSchema {
 		return res;
 	}
 	
-	static _fillArray(arr, tree, data) {
+	static _fillArray(arr, type, data) {
 		if (!(data instanceof Array)) {
 			throw new Error("Data should be an array");
 		}
 		let leaf = undefined;
 		for (let i = 0; i < data.length; i++) {
-			if (tree.length > i) {
-				leaf = tree[i];
+			if (type.length > i) {
+				leaf = type[i];
 			}
 			arr[i] = this.make(leaf, data[i]);
 		}
 		return arr;
 	}
 	
-	static _fillObject(obj, tree, data, names) {
+	static _fillObject(obj, type, data, names) {
 		if (typeof data !== 'object') {
 			throw new Error("Data should be an object");
 		}
@@ -106,13 +106,13 @@ export default class JSONSchema {
 			names = Object.keys(data);
 		}
 		for (const name of names) {
-			obj[name] = this.make(tree[name], data[name]);
+			obj[name] = this.make(type[name], data[name]);
 		}
 		return obj;
 	}
 	
 	static mix(constructor, propsObject) {
-		return new JSONSchemaMix(constructor, propsObject);
+		return new JSONSonMix(constructor, propsObject);
 	}
 	
 	toJSON() {
@@ -123,7 +123,7 @@ export default class JSONSchema {
 					name: data.name,
 				};
 			}
-			else if (data instanceof JSONSchemaMix) {
+			else if (data instanceof JSONSonMix) {
 				return {
 					type: 'mix',
 					name: data.underlyingConstructor.name,
@@ -152,7 +152,7 @@ export default class JSONSchema {
 				return data;
 			}
 		};
-		return converter(this._tree, []);
+		return converter(this._type, []);
 	}
 	
 	static fromJSON(data) {
@@ -173,7 +173,7 @@ export default class JSONSchema {
 			else if (data.type === 'mix') {
 				const underlyingConstructor = this.resolveConstructor(data.name) || Object;
 				const propsObject = converter(data.propsObject, path.concat(['propsObject']));
-				return new JSONSchemaMix(underlyingConstructor, propsObject);
+				return new JSONSonMix(underlyingConstructor, propsObject);
 			}
 			else if (data.type === 'object') {
 				const constructor = this.resolveConstructor(data.name) || Object;
@@ -195,7 +195,7 @@ export default class JSONSchema {
 	}
 }
 
-class JSONSchemaMix {
+class JSONSonMix {
 	underlyingConstructor;
 	propsObject;
 	
@@ -205,7 +205,7 @@ class JSONSchemaMix {
 	}
 	
 	make(data) {
-		const res = JSONSchema._instantiate(this.underlyingConstructor, data);
+		const res = JSONSon._instantiate(this.underlyingConstructor, data);
 		if (res == null) {
 			return res;
 		}
@@ -213,9 +213,9 @@ class JSONSchemaMix {
 			? undefined
 			: Object.keys(this.propsObject)
 		;
-		JSONSchema._fillObject(res, this.propsObject, data, names);
+		JSONSon._fillObject(res, this.propsObject, data, names);
 		return res;
 	}
 }
 
-JSON.Schema = JSONSchema;
+JSON.Son = JSONSon;

@@ -119,8 +119,8 @@
 </form>
 <script type="module">
 
-import JSONSchema from './src/utils/JSONSchema.js';
-import { HttpApiClientJSONSchema } from './src/utils/ApiClientJSONSchema.js';
+import JSONSon from './src/utils/JSONSon.js';
+import { HttpApiClientJSONSon } from './src/utils/ApiClientJSONSon.js';
 
 import models from './src/models.js';
 window.models = models;
@@ -128,20 +128,20 @@ window.models = models;
 import HashParams from './src/utils/HashParams.js';
 window.HashParams = HashParams;
 
-JSONSchema.resolveConstructor = (name) => {
-	for (const lib of JSONSchema.resolveConstructor.supportedConstructorLibs) {
+JSONSon.resolveConstructor = (name) => {
+	for (const lib of JSONSon.resolveConstructor.supportedConstructorLibs) {
 		if (lib[name]) {
 			return lib[name];
 		}
 	}
 	return null;
 };
-JSONSchema.resolveConstructor.supportedConstructorLibs = [
+JSONSon.resolveConstructor.supportedConstructorLibs = [
 	window,
 	models,
 ];
 
-const api = window.api = new HttpApiClientJSONSchema('/api/');
+const api = window.api = new HttpApiClientJSONSon('/api/');
 await api.init();
 console.warn(await api.test('api', 'ok'));
 

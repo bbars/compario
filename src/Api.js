@@ -1,5 +1,5 @@
 import ApiBase from './utils/ApiBase.js';
-import JSONSchema from './utils/JSONSchema.js';
+import JSONSon from './utils/JSONSon.js';
 import DB from './utils/DB.js';
 import models from './models.js';
 import fsPromises from 'fs/promises';
@@ -18,7 +18,7 @@ export default class Api extends ApiBase {
 	getPublicApiFunctions() {
 		const res = super.getPublicApiFunctions();
 		for (const name in res) {
-			res[name].returnJSONSchema = this[name + '_JSONSchema'];
+			res[name].returnJSONSon = this[name + '_JSONSon'];
 		}
 		return res;
 	}
@@ -27,11 +27,11 @@ export default class Api extends ApiBase {
 		return new String(s1 + ' ' + s2);
 	}
 	
-	test_JSONSchema = new JSONSchema(String);
+	test_JSONSon = new JSONSon(String);
 	
 	async saveCompario(comp) {
 		comp.comparioId = null;
-		comp = JSONSchema.make(models.Compario, comp);
+		comp = JSONSon.make(models.Compario, comp);
 		await comp.init();
 		let rows, dbRes;
 		
@@ -72,7 +72,7 @@ export default class Api extends ApiBase {
 		return comp;
 	}
 	
-	saveCompario_JSONSchema = new JSONSchema(models.Compario);
+	saveCompario_JSONSon = new JSONSon(models.Compario);
 	
 	async getCompario(comparioId) {
 		const comp = await this.R.db.queryOne(`
@@ -116,5 +116,5 @@ export default class Api extends ApiBase {
 		return comp;
 	}
 	
-	getCompario_JSONSchema = new JSONSchema(models.Compario);
+	getCompario_JSONSon = new JSONSon(models.Compario);
 }

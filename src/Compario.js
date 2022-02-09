@@ -1,5 +1,5 @@
 import SqlModel from './utils/SqlModel.js';
-import JSONSchema from './utils/JSONSchema.js';
+import JSONSon from './utils/JSONSon.js';
 import ComparioCrit from './ComparioCrit.js';
 import ComparioItem from './ComparioItem.js';
 import ComparioValueWrapper from './ComparioValueWrapper.js';
@@ -103,8 +103,8 @@ export default class Compario extends SqlModel {
 		return res;
 	}
 	
-	static getJSONSchema() {
-		return JSONSchema.mix(this, {
+	static getJSONSonSchema() {
+		return JSONSon.mix(this, {
 			crits: [ComparioCrit],
 			items: [ComparioItem],
 			values: [[ComparioValueWrapper]],
