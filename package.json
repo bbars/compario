@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "event-target-shim": "^6.0.2",
+    "jsonson": "^1.0.0",
     "sqlite3": "^5.0.2"
   }
 }

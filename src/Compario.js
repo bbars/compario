@@ -1,9 +1,16 @@
 import SqlModel from './utils/SqlModel.js';
-import JSONSon from './utils/JSONSon.js';
 import ComparioCrit from './ComparioCrit.js';
 import ComparioItem from './ComparioItem.js';
 import ComparioValueWrapper from './ComparioValueWrapper.js';
 import { EventTarget, CustomEvent } from './utils/events.js';
+const JSONSon = await (async function () {
+	try {
+		return (await import('jsonson')).default;
+	}
+	catch {
+		return (await import('https://unpkg.com/jsonson@latest/index.js')).default;
+	}
+})();
 
 const PROP_SCORES = Symbol('scores');
 
@@ -407,7 +414,10 @@ export default class Compario extends SqlModel {
 					const min = Math.min(...normValues[critIndex]);
 					const max = Math.max(...normValues[critIndex]);
 					normValues[critIndex] = normValues[critIndex].map((val) => {
-						return min === max ? 0 : (val - min) / (max - min);
+						return min === max
+							? (!min ? 0 : (min < 0 ? -1 : 1))
+							: (val - min) / (max - min)
+						;
 					});
 					normValues[critIndex].normalized = true;
 				}

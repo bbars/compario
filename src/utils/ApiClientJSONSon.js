@@ -1,5 +1,12 @@
 import { ApiClientBase, HttpApiClient, SioApiClient } from './ApiClient.js';
-import JSONSon from './JSONSon.js';
+const JSONSon = await (async function () {
+	try {
+		return (await import('jsonson')).default;
+	}
+	catch {
+		return (await import('https://unpkg.com/jsonson@latest/index.js')).default;
+	}
+})();
 
 function registerFunctionWithJSONSon(_this, _superFunc, funcName, def) {
 	if (def.returnJSONSon) {

@@ -1,5 +1,5 @@
 import ApiBase from './utils/ApiBase.js';
-import JSONSon from './utils/JSONSon.js';
+import JSONSon from 'jsonson';
 import DB from './utils/DB.js';
 import models from './models.js';
 import fsPromises from 'fs/promises';
