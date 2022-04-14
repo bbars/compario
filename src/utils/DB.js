@@ -22,7 +22,6 @@ export default class DB {
 	}
 	
 	async init(models) {
-		// console.log(sqlite3.verbose()); // TODO: check if verbose is important
 		this.sqlite = new sqlite3.Database(this.conf.filename, this.conf.mode);
 		
 		if (this.conf.journalMode) {
@@ -131,7 +130,7 @@ export default class DB {
 		};
 		this.sqlite.each(sql, values, cbFn, completeFn);
 		let item;
-		while (!isComplete || !ready.length) {
+		while (!isComplete || ready.length > 0) {
 			const r = ready.shift();
 			if (r) {
 				if (r.err) {
